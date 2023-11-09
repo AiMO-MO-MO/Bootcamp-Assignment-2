@@ -1,0 +1,63 @@
+Sub ticker()
+    Dim ticker As String
+    Dim lastrow As Long
+    Dim closing_price As Double
+    Dim opening_price As Double
+    Dim WorksheetName As String
+    Dim j As Long
+    
+    For Each ws In Worksheets
+        lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        j = 1
+        
+        opening_price = ws.Cells(2, 3).Value
+
+        For i = 2 To lastrow
+            If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Then
+                ticker = ws.Cells(i, 1).Value
+                j = j + 1
+                ws.Cells(j, 11).Value = ticker
+                closing_price = ws.Cells(i, 6).Value
+                ws.Cells(j, 12).Value = closing_price - opening_price
+
+                If ws.Cells(j, 12).Value > 0 Then
+                    ws.Cells(j, 12).Interior.ColorIndex = 4
+                Else
+                    ws.Cells(j, 12).Interior.ColorIndex = 3
+                End If
+
+                ws.Cells(j, 13).Value = ((closing_price - opening_price) / closing_price)
+                ws.Cells(j, 13).NumberFormat = "0.00%"
+
+                If ws.Cells(i, 1).Value = ws.Cells(j, 11).Value Then
+                    volume = volume + ws.Cells(i, 7).Value
+                    ws.Cells(j, 14).Value = volume
+                End If
+                
+                opening_price = ws.Cells(i + 1, 3).Value
+            End If
+            
+        Next i
+
+        
+        max_per = Application.WorksheetFunction.Max(ws.Range("M2:M" & lastrow))
+        min_per = Application.WorksheetFunction.Min(ws.Range("M2:M" & lastrow))
+        max_vol = Application.WorksheetFunction.Max(ws.Range("N2:N" & lastrow))
+        
+        ws.Cells(2, 18).Value = max_per
+        ws.Cells(3, 18).Value = min_per
+        ws.Cells(4, 18).Value = max_vol
+        
+        RowCount = ws.Cells(Rows.Count, 13).End(xlUp).Row
+        
+        mp_postion = Application.WorksheetFunction.Match(max_per, ws.Range("M2:M" & RowCount), 0)
+        minp_postion = Application.WorksheetFunction.Match(min_per, ws.Range("M2:M" & RowCount), 0)
+        maxpv_postion = Application.WorksheetFunction.Match(max_vol, ws.Range("N2:N" & RowCount), 0)
+        
+        ws.Range("Q2").Value = ws.Cells(mp_postion + 1, 11).Value
+        ws.Range("Q3").Value = ws.Cells(minp_postion + 1, 11).Value
+        ws.Range("Q4").Value = ws.Cells(maxpv_postion + 1, 11).Value
+    
+    
+    Next ws
+End Sub
